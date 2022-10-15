@@ -1,7 +1,7 @@
 [package]
-name = "eframe_template"
+name = "take_home"
 version = "0.1.0"
-authors = ["Emil Ernerfeldt <emil.ernerfeldt@gmail.com>"]
+authors = ["Adam Trabelsi <at1197@scarletmail.rutgers.edu>"]
 edition = "2021"
 rust-version = "1.60"
 
