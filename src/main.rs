@@ -1,34 +1,43 @@
-#![warn(clippy::all, rust_2018_idioms)]
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-// When compiling natively:
-#[cfg(not(target_arch = "wasm32"))]
-fn main() {
-    // Log to stdout (if you run with `RUST_LOG=debug`).
-    tracing_subscriber::fmt::init();
+use eframe::egui;
 
-    let native_options = eframe::NativeOptions::default();
+fn main() {
+    let options = eframe::NativeOptions::default();
     eframe::run_native(
-        "eframe template",
-        native_options,
-        Box::new(|cc| Box::new(take_home::TemplateApp::new(cc))),
+        "Take Home",
+        options,
+        Box::new(|_cc| Box::new(MyApp::default())),
     );
 }
 
-// when compiling to web using trunk.
-#[cfg(target_arch = "wasm32")]
-fn main() {
-    // Make sure panics are logged using `console.error`.
-    console_error_panic_hook::set_once();
+struct MyApp {
+    name: String,
+    age: u32,
+}
 
-    // Redirect tracing to console.log and friends:
-    tracing_wasm::set_as_global_default();
+impl Default for MyApp {
+    fn default() -> Self {
+        Self {
+            name: "Arthur".to_owned(),
+            age: 42,
+        }
+    }
+}
 
-    let web_options = eframe::WebOptions::default();
-    eframe::start_web(
-        "the_canvas_id", // hardcode it
-        web_options,
-        Box::new(|cc| Box::new(take_home::TemplateApp::new(cc))),
-    )
-    .expect("failed to start eframe");
+impl eframe::App for MyApp {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ui.heading("Hello world");
+            ui.horizontal(|ui| {
+                ui.label("Your name: ");
+                ui.text_edit_singleline(&mut self.name);
+            });
+            ui.add(egui::Slider::new(&mut self.age, 0..=120).text("age"));
+            if ui.button("Click each year").clicked() {
+                self.age += 1;
+            }
+            ui.label(format!("Hello '{}', age {}", self.name, self.age));
+        });
+    }
 }
