@@ -1,12 +1,11 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 
-use eframe::egui::{self, Layout, RichText, Frame, Grid, Sense};
+use eframe::egui::{self, Layout, RichText, Frame, Grid, Sense, Ui};
 use eframe::egui::style::Margin;
 use eframe::egui::{FontId, TextStyle, FontFamily};
 use eframe::emath::Align;
 use eframe::epaint::{Color32, Rounding, Shadow, Stroke, vec2};
-
 fn main() {
     let mut options = eframe::NativeOptions::default();
     options.decorated = true;
@@ -57,38 +56,48 @@ fn configure_custom_theme(ctx: &egui::Context) {
 }
 
 
-//TODO get this working
-// struct CalendarGrid{
-//     cols: i32,
-//     rows: i32,
-//     id: String,
-// }
+struct CalendarGrid{
+    cols: u32,
+    rows: u32,
+    done_color: Color32,
+    id: String,
+}
 
-// impl CalendarGrid{
-//     fn show(&self){
-//         Grid::new((self.id).into()).show(ui, |ui|{
-//             ui.spacing_mut().item_spacing = vec2(5.0, 5.0);
+impl CalendarGrid{
+    fn new(cols: u32, rows: u32, done_color: Color32, id: String) -> Self {
+        Self {
+            cols,rows,done_color,id
+        }
+    }
+    fn show(&self,  ui : &mut egui::Ui){
 
-//             ui.horizontal(|ui|{
-                
-//                 for n in 0..20{
-//                     let mut rect = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover()).0;
-//                     ui.painter().rect(rect, Rounding::default(), Color32::from_rgb(104, 107, 120), Stroke::none());
+        Grid::new(&self.id).show(ui, |ui|{
+            ui.spacing_mut().item_spacing = vec2(5.0, 5.0);
 
-//                     if n % 3 == 0 {
-//                         rect = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover()).0;
-//                         ui.painter().rect(rect, Rounding::default(), Color32::from_rgb(139, 233, 253), Stroke::none());
-//                     } 
+            for i in 0..self.rows{
+                ui.horizontal(|ui|{
+                    for j in 0..self.cols{
+                        let mut rect = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover()).0;
+                        ui.painter().rect(rect, Rounding::default(), Color32::from_rgb(104, 107, 120), Stroke::none());
+    
+                         
+                        rect = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover()).0;
+                        //the if close here is just for testing, it populates filled squares arbitrarily. later data will be used to determine if the square is filled or no  
+                        ui.painter().rect(rect, Rounding::default(), if (i+j) % 3 == 0 {self.done_color} else {Color32::from_rgb(104, 107, 120)}, Stroke::none());
+                        
+    
+                        rect = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover()).0;
+                        ui.painter().rect(rect, Rounding::default(), Color32::from_rgb(104, 107, 120), Stroke::none());
+                    }
+                });   
+                ui.end_row();
 
-//                     rect = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover()).0;
-//                     ui.painter().rect(rect, Rounding::default(), Color32::from_rgb(104, 107, 120), Stroke::none());
-//                 }
-//             });        
+            }
+   
             
-//             ui.end_row();
-//         });
-//     }
-// }
+        });
+    }
+}
 
 struct MyApp {
     name: String,
@@ -132,50 +141,13 @@ impl eframe::App for MyApp {
                     ui.heading("Drawing");
                     ui.label("be one with my pencil. learn about anatomy, perspective, and color theory");
 
-                    
-                    //TODO: refactor using CalendarGrid
-                    Grid::new("drawing_heat_calendar").show(ui, |ui|{
 
-                        ui.spacing_mut().item_spacing = vec2(5.0, 5.0);
+                    ui.allocate_space(vec2(0.0, 10.0));
+                    CalendarGrid::new(8, 8, Color32::from_rgb(139, 233, 253), String::from("drawing_calendar_grid")).show(ui);
 
-                        ui.horizontal(|ui|{
-                            
-                            for n in 0..20{
-                                let mut rect = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover()).0;
-                                ui.painter().rect(rect, Rounding::default(), Color32::from_rgb(104, 107, 120), Stroke::none());
-
-                                if n % 3 == 0 {
-                                    rect = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover()).0;
-                                    ui.painter().rect(rect, Rounding::default(), Color32::from_rgb(139, 233, 253), Stroke::none());
-                                } 
-
-                                rect = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover()).0;
-                                ui.painter().rect(rect, Rounding::default(), Color32::from_rgb(104, 107, 120), Stroke::none());
-                            }
-                        });        
-                        
-                        ui.end_row();
-
-                        ui.horizontal(|ui|{
-                            
-                            for n in 0..20{
-                                let mut rect = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover()).0;
-                                ui.painter().rect(rect, Rounding::default(), Color32::from_rgb(104, 107, 120), Stroke::none());
-
-                                if n % 2 == 0 {
-                                    rect = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover()).0;
-                                    ui.painter().rect(rect, Rounding::default(), Color32::from_rgb(139, 233, 253), Stroke::none());
-                                } 
-
-                                rect = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover()).0;
-                                ui.painter().rect(rect, Rounding::default(), Color32::from_rgb(104, 107, 120), Stroke::none());
-                            }
-                        });    
-
-                    });
-
+                    //Todo refactor using ui.allocate_space instead of frame margin and ui.horizontal instead of ui.with_layout. it will make this block more concise 
                     Frame::default()
-                    .outer_margin(Margin{left:0.0, right:0.0, bottom:0.0, top: 150.0})
+                    .outer_margin(Margin{left:0.0, right:0.0, bottom:0.0, top: 50.0})
                     .show(ui,|ui| { ui.with_layout(Layout::left_to_right(Align::Min), |ui|{
                         ui.add(egui::Button::new(RichText::new("Add Entry +").color(Color32::from_rgb(139, 233, 253)).underline()));
                         ui.add_space(15.0);
@@ -192,9 +164,12 @@ impl eframe::App for MyApp {
                     ui.heading("Read");
                     ui.label("crack the books, learn something new.");
 
-                    
+                    ui.allocate_space(vec2(0.0, 10.0));
+                    CalendarGrid::new(8, 8, Color32::from_rgb(241, 250, 140), String::from("reading_calendar_grid")).show(ui);
+
+
                     Frame::default()
-                    .outer_margin(Margin{left:0.0, right:0.0, bottom:0.0, top: 150.0})
+                    .outer_margin(Margin{left:0.0, right:0.0, bottom:0.0, top: 50.0})
                     .show(ui,|ui| { ui.with_layout(Layout::left_to_right(Align::Min), |ui|{
                         ui.add(egui::Button::new(RichText::new("Add Entry +").color(Color32::from_rgb(241, 250, 140)).underline()));
                         ui.add_space(15.0);
