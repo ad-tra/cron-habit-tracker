@@ -1,17 +1,17 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 
-use eframe::egui::{self, Layout, RichText, Frame};
+use eframe::egui::{self, Layout, RichText, Frame, Grid, Sense};
 use eframe::egui::style::Margin;
 use eframe::egui::{FontId, TextStyle, FontFamily};
 use eframe::emath::Align;
-use eframe::epaint::{Color32, Rounding, Shadow, Stroke};
+use eframe::epaint::{Color32, Rounding, Shadow, Stroke, vec2};
 
 fn main() {
     let mut options = eframe::NativeOptions::default();
-    options.decorated = true; 
+    options.decorated = true;
     options.fullscreen = true;
-    
+
     eframe::run_native(
         "Take Home",
         options,
@@ -56,6 +56,40 @@ fn configure_custom_theme(ctx: &egui::Context) {
 
 }
 
+
+//TODO get this working
+// struct CalendarGrid{
+//     cols: i32,
+//     rows: i32,
+//     id: String,
+// }
+
+// impl CalendarGrid{
+//     fn show(&self){
+//         Grid::new((self.id).into()).show(ui, |ui|{
+//             ui.spacing_mut().item_spacing = vec2(5.0, 5.0);
+
+//             ui.horizontal(|ui|{
+                
+//                 for n in 0..20{
+//                     let mut rect = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover()).0;
+//                     ui.painter().rect(rect, Rounding::default(), Color32::from_rgb(104, 107, 120), Stroke::none());
+
+//                     if n % 3 == 0 {
+//                         rect = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover()).0;
+//                         ui.painter().rect(rect, Rounding::default(), Color32::from_rgb(139, 233, 253), Stroke::none());
+//                     } 
+
+//                     rect = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover()).0;
+//                     ui.painter().rect(rect, Rounding::default(), Color32::from_rgb(104, 107, 120), Stroke::none());
+//                 }
+//             });        
+            
+//             ui.end_row();
+//         });
+//     }
+// }
+
 struct MyApp {
     name: String,
     age: u32,
@@ -99,6 +133,47 @@ impl eframe::App for MyApp {
                     ui.label("be one with my pencil. learn about anatomy, perspective, and color theory");
 
                     
+                    //TODO: refactor using CalendarGrid
+                    Grid::new("drawing_heat_calendar").show(ui, |ui|{
+
+                        ui.spacing_mut().item_spacing = vec2(5.0, 5.0);
+
+                        ui.horizontal(|ui|{
+                            
+                            for n in 0..20{
+                                let mut rect = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover()).0;
+                                ui.painter().rect(rect, Rounding::default(), Color32::from_rgb(104, 107, 120), Stroke::none());
+
+                                if n % 3 == 0 {
+                                    rect = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover()).0;
+                                    ui.painter().rect(rect, Rounding::default(), Color32::from_rgb(139, 233, 253), Stroke::none());
+                                } 
+
+                                rect = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover()).0;
+                                ui.painter().rect(rect, Rounding::default(), Color32::from_rgb(104, 107, 120), Stroke::none());
+                            }
+                        });        
+                        
+                        ui.end_row();
+
+                        ui.horizontal(|ui|{
+                            
+                            for n in 0..20{
+                                let mut rect = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover()).0;
+                                ui.painter().rect(rect, Rounding::default(), Color32::from_rgb(104, 107, 120), Stroke::none());
+
+                                if n % 2 == 0 {
+                                    rect = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover()).0;
+                                    ui.painter().rect(rect, Rounding::default(), Color32::from_rgb(139, 233, 253), Stroke::none());
+                                } 
+
+                                rect = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover()).0;
+                                ui.painter().rect(rect, Rounding::default(), Color32::from_rgb(104, 107, 120), Stroke::none());
+                            }
+                        });    
+
+                    });
+
                     Frame::default()
                     .outer_margin(Margin{left:0.0, right:0.0, bottom:0.0, top: 150.0})
                     .show(ui,|ui| { ui.with_layout(Layout::left_to_right(Align::Min), |ui|{
