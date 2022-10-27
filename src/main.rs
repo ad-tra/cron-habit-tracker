@@ -1,15 +1,15 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 
-use eframe::egui::{self, Layout, RichText, Frame, Sense};
+use eframe::egui::{self, Layout, RichText, Frame, Sense, ScrollArea};
 use eframe::egui::style::Margin;
 use eframe::egui::{FontId, TextStyle, FontFamily};
 use eframe::emath::Align;
 use eframe::epaint::{Color32, Rounding, Shadow, Stroke, vec2};
 fn main() {
     let mut options = eframe::NativeOptions::default();
-    options.decorated = true;
-    options.fullscreen = true;
+    // options.decorated = true;
+    // options.fullscreen = true;
 
     eframe::run_native(
         "Take Home",
@@ -17,6 +17,53 @@ fn main() {
         Box::new(|cc| Box::new(MyApp::new(cc))),
     );
 }
+
+
+struct MyApp {
+    name: String,
+    age: u32,
+}
+
+impl  MyApp {
+    fn new(cc : &eframe::CreationContext<'_>) -> Self {
+        configure_custom_theme(&cc.egui_ctx);
+        Self {
+            name: "Arthur".to_owned(),
+            age: 42,
+        }
+    }
+}
+
+impl eframe::App for MyApp {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+
+        let root_frame = egui::Frame {
+            inner_margin: Margin::symmetric(50.00, 50.00),
+            outer_margin: Margin::same(0.0),
+            rounding: Rounding::same(0.0),
+            shadow: Shadow::small_dark(),
+            fill: Color32::from_rgb(40, 42, 54),
+            stroke: Stroke::none() 
+        };
+        egui::CentralPanel::default().frame(root_frame).show(ctx, |ui| {
+            
+            ui.with_layout(egui::Layout::right_to_left(Align::LEFT), |ui|{
+                ui.heading("Your Habit tracker");
+            });
+            ScrollArea::new([false, true]).show(ui, |ui|{
+                
+                HabitFrame::new(String::from("Drawing"), String::from("be one with my pencil. learn about anatomy, perspective, and color theory"), Color32::from_rgb(139, 233, 253)).show(ui);
+                HabitFrame::new(String::from("Read"), String::from("crack the books, learn something new."), Color32::from_rgb(241, 250, 140)).show(ui);
+            });
+
+
+        });
+    }
+}
+
+
+
+
 
 //fonts, and colors
 fn configure_custom_theme(ctx: &egui::Context) {
@@ -111,7 +158,7 @@ impl  HabitFrame {
                 ui.allocate_space(vec2(0.0, 20.0));
                 CalendarGrid::new(24, 8, self.accent_color).show(ui);
 
-                //Todo refactor using ui.allocate_space instead of frame margin and ui.horizontal instead of ui.with_layout. it will make this block more concise 
+                //TODO refactor using ui.allocate_space instead of frame margin and ui.horizontal instead of ui.with_layout. it will make this block more concise 
                 Frame::default()
                 .outer_margin(Margin{left:0.0, right:0.0, bottom:0.0, top: 20.0})
                 .show(ui,|ui| { ui.with_layout(Layout::left_to_right(Align::Min), |ui|{
@@ -120,44 +167,5 @@ impl  HabitFrame {
                     ui.add(egui::Button::new(RichText::new("Tick the day").underline()));
                 })});                    
         })});
-    }
-}
-struct MyApp {
-    name: String,
-    age: u32,
-}
-
-impl  MyApp {
-    fn new(cc : &eframe::CreationContext<'_>) -> Self {
-        configure_custom_theme(&cc.egui_ctx);
-        Self {
-            name: "Arthur".to_owned(),
-            age: 42,
-        }
-    }
-}
-
-impl eframe::App for MyApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-
-        let root_frame = egui::Frame {
-            inner_margin: Margin::symmetric(50.00, 50.00),
-            outer_margin: Margin::same(0.0),
-            rounding: Rounding::same(0.0),
-            shadow: Shadow::small_dark(),
-            fill: Color32::from_rgb(40, 42, 54),
-            stroke: Stroke::none() 
-        };
-        egui::CentralPanel::default().frame(root_frame).show(ctx, |ui| {
-            
-            ui.with_layout(egui::Layout::right_to_left(Align::LEFT), |ui|{
-                ui.heading("Your Habit tracker");
-            });
-            
-            HabitFrame::new(String::from("Drawing"), String::from("be one with my pencil. learn about anatomy, perspective, and color theory"), Color32::from_rgb(139, 233, 253)).show(ui);
-            HabitFrame::new(String::from("Read"), String::from("crack the books, learn something new."), Color32::from_rgb(241, 250, 140)).show(ui);
-
-
-        });
     }
 }
