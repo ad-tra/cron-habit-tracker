@@ -83,6 +83,45 @@ impl CalendarGrid{
     }
 }
 
+
+struct HabitFrame{
+    heading: String,
+    sub_heading: String,
+    accent_color: Color32
+}
+
+impl  HabitFrame {
+    fn new(heading: String, sub_heading:String, accent_color:Color32) ->Self{
+        Self{
+            heading, sub_heading, accent_color
+        }
+    }
+    fn show(&self, ui : &mut egui::Ui){
+        
+        Frame::default()
+            .inner_margin(Margin::symmetric(40.00, 25.00))
+            .fill(Color32::from_rgb(68, 71, 90))
+            .outer_margin(Margin::symmetric(0.0, 30.0))
+            .show(ui,|ui| { ui.with_layout(Layout::default().with_cross_justify(true), |ui|{
+
+                ui.heading(&self.heading);
+                ui.label(&self.sub_heading);
+
+
+                ui.allocate_space(vec2(0.0, 20.0));
+                CalendarGrid::new(24, 8, self.accent_color).show(ui);
+
+                //Todo refactor using ui.allocate_space instead of frame margin and ui.horizontal instead of ui.with_layout. it will make this block more concise 
+                Frame::default()
+                .outer_margin(Margin{left:0.0, right:0.0, bottom:0.0, top: 20.0})
+                .show(ui,|ui| { ui.with_layout(Layout::left_to_right(Align::Min), |ui|{
+                    ui.add(egui::Button::new(RichText::new("Add Entry +").color(self.accent_color).underline()));
+                    ui.add_space(15.0);
+                    ui.add(egui::Button::new(RichText::new("Tick the day").underline()));
+                })});                    
+        })});
+    }
+}
 struct MyApp {
     name: String,
     age: u32,
@@ -115,51 +154,9 @@ impl eframe::App for MyApp {
                 ui.heading("Your Habit tracker");
             });
             
-            //TODO: refactor this "habit" frame into a widget/component to make code dry  
-            Frame::default()
-                .inner_margin(Margin::symmetric(40.00, 25.00))
-                .fill(Color32::from_rgb(68, 71, 90))
-                .outer_margin(Margin::symmetric(0.0, 30.0))
-                .show(ui,|ui| { ui.with_layout(Layout::default().with_cross_justify(true), |ui|{
+            HabitFrame::new(String::from("Drawing"), String::from("be one with my pencil. learn about anatomy, perspective, and color theory"), Color32::from_rgb(139, 233, 253)).show(ui);
+            HabitFrame::new(String::from("Read"), String::from("crack the books, learn something new."), Color32::from_rgb(241, 250, 140)).show(ui);
 
-                    ui.heading("Drawing");
-                    ui.label("be one with my pencil. learn about anatomy, perspective, and color theory");
-
-
-                    ui.allocate_space(vec2(0.0, 20.0));
-                    CalendarGrid::new(24, 8, Color32::from_rgb(139, 233, 253)).show(ui);
-
-                    //Todo refactor using ui.allocate_space instead of frame margin and ui.horizontal instead of ui.with_layout. it will make this block more concise 
-                    Frame::default()
-                    .outer_margin(Margin{left:0.0, right:0.0, bottom:0.0, top: 20.0})
-                    .show(ui,|ui| { ui.with_layout(Layout::left_to_right(Align::Min), |ui|{
-                        ui.add(egui::Button::new(RichText::new("Add Entry +").color(Color32::from_rgb(139, 233, 253)).underline()));
-                        ui.add_space(15.0);
-                        ui.add(egui::Button::new(RichText::new("Tick the day").underline()));
-                    })});                    
-            })});
-
-            Frame::default()
-                .inner_margin(Margin::symmetric(40.00, 25.00))
-                .fill(Color32::from_rgb(68, 71, 90))
-                .outer_margin(Margin::symmetric(0.0, 30.0))
-                .show(ui,|ui| { ui.with_layout(Layout::default().with_cross_justify(true), |ui|{
-
-                    ui.heading("Read");
-                    ui.label("crack the books, learn something new.");
-
-                    ui.allocate_space(vec2(0.0, 10.0));
-                    CalendarGrid::new(24, 8, Color32::from_rgb(241, 250, 140)).show(ui);
-
-
-                    Frame::default()
-                    .outer_margin(Margin{left:0.0, right:0.0, bottom:0.0, top: 50.0})
-                    .show(ui,|ui| { ui.with_layout(Layout::left_to_right(Align::Min), |ui|{
-                        ui.add(egui::Button::new(RichText::new("Add Entry +").color(Color32::from_rgb(241, 250, 140)).underline()));
-                        ui.add_space(15.0);
-                        ui.add(egui::Button::new(RichText::new("Tick the day").underline()));
-                    })});                    
-            })});
 
         });
     }
