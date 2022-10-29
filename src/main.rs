@@ -85,8 +85,8 @@ fn configure_custom_theme(ctx: &egui::Context) {
 
     style.text_styles = [
         (TextStyle::Heading, FontId::new(50.0, FontFamily::Name(("Sabo").into()))),
-        (TextStyle::Name("Heading2Filled".into()), FontId::new(40.0, FontFamily::Name(("Sabo").into()))),
-        (TextStyle::Name("Heading2Regular".into()), FontId::new(40.0, FontFamily::Name(("SaboRegular").into()))),
+        (TextStyle::Name("Heading2Filled".into()), FontId::new(30.0, FontFamily::Name(("Sabo").into()))),
+        (TextStyle::Name("Heading2Regular".into()), FontId::new(30.0, FontFamily::Name(("SaboRegular").into()))),
         (TextStyle::Body, FontId::new(18.0, FontFamily::Monospace)),
         (TextStyle::Monospace, FontId::new(18.0, FontFamily::Monospace)),
         (TextStyle::Button, FontId::new(25.0,  FontFamily::Name(("Sabo").into()))),
@@ -164,10 +164,12 @@ impl  HabitFrame {
                     ui.with_layout(Layout::left_to_right(Align::TOP), |ui|{
                         ui.heading(&self.heading);
                     });
+                    
                     ui.with_layout(Layout::right_to_left(Align::TOP), |ui|{
                         
-                        ui.label(RichText::new("Day Streak").size(30.0).text_style(TextStyle::Name("Heading2Filled".into())));
+                        ui.label(RichText::new("Day Streak").text_style(TextStyle::Name("Heading2Filled".into())));
                         ui.label(RichText::new(&self.streak.to_string()).text_style(TextStyle::Name("Heading2Regular".into())));
+                        ui.label(RichText::new("•••").color(self.accent_color).text_style(TextStyle::Name("Heading2Filled".into())));
 
                     });
                 });
@@ -184,7 +186,8 @@ impl  HabitFrame {
                     ui.add(egui::Button::new(RichText::new("Add Entry +").color(self.accent_color).underline()));
                     ui.add_space(15.0);
                     ui.add(egui::Button::new(RichText::new("Tick the day").underline()));
-                })});                    
+                })});   
+                
         })});
     }
 }
