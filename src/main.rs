@@ -8,8 +8,8 @@ use eframe::emath::Align;
 use eframe::epaint::{Color32, Rounding, Shadow, Stroke, vec2};
 fn main() {
     let mut options = eframe::NativeOptions::default();
-    // options.decorated = true;
-    // options.fullscreen = true;
+    options.decorated = true;
+    options.fullscreen = true;
 
     eframe::run_native(
         "Take Home",
@@ -50,10 +50,11 @@ impl eframe::App for MyApp {
             ui.with_layout(egui::Layout::right_to_left(Align::LEFT), |ui|{
                 ui.heading("Your Habit tracker");
             });
+
             ScrollArea::new([false, true]).show(ui, |ui|{
                 
-                HabitFrame::new(String::from("Drawing"), String::from("be one with my pencil. learn about anatomy, perspective, and color theory"), Color32::from_rgb(139, 233, 253)).show(ui);
-                HabitFrame::new(String::from("Read"), String::from("crack the books, learn something new."), Color32::from_rgb(241, 250, 140)).show(ui);
+                HabitFrame::new(String::from("Drawing"), String::from("be one with my pencil. learn about anatomy, perspective, and color theory"), Color32::from_rgb(139, 233, 253), 1).show(ui);
+                HabitFrame::new(String::from("Read"), String::from("crack the books, learn something new."), Color32::from_rgb(241, 250, 140), 12).show(ui);
             });
 
 
@@ -77,12 +78,15 @@ fn configure_custom_theme(ctx: &egui::Context) {
     fonts.font_data.insert("cascadia_regular".to_owned(), egui::FontData::from_static(include_bytes!("../assets/fonts/Cascadia-Regular.otf")));
     
     fonts.families.entry(FontFamily::Name("Sabo".into())).or_default().push("sabo_filled".to_owned());
+    fonts.families.entry(FontFamily::Name("SaboRegular".into())).or_default().push("sabo_regular".to_owned());
     fonts.families.entry(egui::FontFamily::Monospace).or_default().insert(0, "cascadia_regular".to_owned());
 
 
 
     style.text_styles = [
         (TextStyle::Heading, FontId::new(50.0, FontFamily::Name(("Sabo").into()))),
+        (TextStyle::Name("Heading2Filled".into()), FontId::new(40.0, FontFamily::Name(("Sabo").into()))),
+        (TextStyle::Name("Heading2Regular".into()), FontId::new(40.0, FontFamily::Name(("SaboRegular").into()))),
         (TextStyle::Body, FontId::new(18.0, FontFamily::Monospace)),
         (TextStyle::Monospace, FontId::new(18.0, FontFamily::Monospace)),
         (TextStyle::Button, FontId::new(25.0,  FontFamily::Name(("Sabo").into()))),
@@ -134,13 +138,14 @@ impl CalendarGrid{
 struct HabitFrame{
     heading: String,
     sub_heading: String,
-    accent_color: Color32
+    accent_color: Color32,
+    streak: u32,
 }
 
 impl  HabitFrame {
-    fn new(heading: String, sub_heading:String, accent_color:Color32) ->Self{
+    fn new(heading: String, sub_heading:String, accent_color:Color32, streak: u32) ->Self{
         Self{
-            heading, sub_heading, accent_color
+            heading, sub_heading, accent_color, streak
         }
     }
     fn show(&self, ui : &mut egui::Ui){
@@ -151,7 +156,21 @@ impl  HabitFrame {
             .outer_margin(Margin::symmetric(0.0, 30.0))
             .show(ui,|ui| { ui.with_layout(Layout::default().with_cross_justify(true), |ui|{
 
-                ui.heading(&self.heading);
+
+                //this whole dance is to achieve the effect of justify-content:space-between
+                //TODO: abstract this into a macro?? it would be nice to shorten this syntax because spacing two elements between each other on a line would be used in high frequency in the future.   
+                ui.with_layout(Layout::left_to_right(Align::TOP).with_main_justify(true), |ui|{
+                
+                    ui.with_layout(Layout::left_to_right(Align::TOP), |ui|{
+                        ui.heading(&self.heading);
+                    });
+                    ui.with_layout(Layout::right_to_left(Align::TOP), |ui|{
+                        
+                        ui.label(RichText::new("Day Streak").size(30.0).text_style(TextStyle::Name("Heading2Filled".into())));
+                        ui.label(RichText::new(&self.streak.to_string()).text_style(TextStyle::Name("Heading2Regular".into())));
+
+                    });
+                });
                 ui.label(&self.sub_heading);
 
 
