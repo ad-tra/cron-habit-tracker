@@ -1,15 +1,17 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 
-use eframe::egui::{self, Layout, RichText, Frame, Sense, ScrollArea};
+use std::f32::INFINITY;
+
+use eframe::egui::{self, Layout, RichText, Frame, Sense, ScrollArea, Button};
 use eframe::egui::style::Margin;
 use eframe::egui::{FontId, TextStyle, FontFamily};
 use eframe::emath::Align;
-use eframe::epaint::{Color32, Rounding, Shadow, Stroke, vec2};
+use eframe::epaint::{Color32, Rounding, Shadow, Stroke, vec2, pos2, Rect};
 fn main() {
     let mut options = eframe::NativeOptions::default();
     options.decorated = true;
-    options.fullscreen = true;
+    options.fullscreen =true;
 
     eframe::run_native(
         "Take Home",
@@ -55,11 +57,23 @@ impl eframe::App for MyApp {
                 
                 HabitFrame::new(String::from("Drawing"), String::from("be one with my pencil. learn about anatomy, perspective, and color theory"), Color32::from_rgb(139, 233, 253), 1).show(ui);
                 HabitFrame::new(String::from("Read"), String::from("crack the books, learn something new."), Color32::from_rgb(241, 250, 140), 12).show(ui);
+            
             });
-
-
+            
+            let bottom_right = ui.max_rect().max;
+            let test_rect = Rect{
+                min:pos2(bottom_right.x - 70.0, bottom_right.y - 100.0),
+                max: bottom_right
+            };
+            //println!("{:#?}", test_rect);
+            ui.allocate_ui_at_rect(test_rect, |ui|{
+                ui.spacing_mut().button_padding = vec2(20.0,10.0);
+                ui.add(Button::new(RichText::new("n\ne\nw\n+").size(20.0).color(Color32::from_rgb(30,30,30))).fill(Color32::from_rgb(80,250,123)));
+            })
         });
+        
     }
+    
 }
 
 
@@ -187,6 +201,7 @@ impl  HabitFrame {
                     ui.add_space(15.0);
                     ui.add(egui::Button::new(RichText::new("Tick the day").underline()));
                 })});   
+
                 
         })});
     }
