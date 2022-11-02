@@ -1,0 +1,29 @@
+[
+	{
+		"id": "30066307-1dca-4a03-b8cb-34a0ddde972a",
+		"name": "Drawing",
+		"description": "be one with my pencil. learn about anatomy, perspective, and color theory",
+		"color": [139, 233, 253, 255],
+		"streak": 1,
+		"frequency": "3asba",
+		"created_at": "2022-11-02T05:37:40.579169100Z"
+	},
+	{
+		"id": "01390e1f-885a-4a78-b5e1-730720cec95b",
+		"name": "Read",
+		"description": "crack the books, learn something new.",
+		"color": [241, 250, 140, 255],
+		"streak": 12,
+		"frequency": "sadasdsadsa",
+		"created_at": "2022-11-02T05:38:31.729156900Z"
+	},
+	{
+		"id": "b600b98b-d922-42e0-8b91-d2ff5a227349",
+		"name": "do mooo",
+		"description": "ehehe",
+		"color": [253, 139, 178, 255],
+		"streak": 0,
+		"frequency": "every day",
+		"created_at": "2022-11-02T06:40:57.777496200Z"
+	}
+]
