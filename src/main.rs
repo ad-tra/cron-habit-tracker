@@ -239,17 +239,17 @@ impl Habit{
                 });
                 ui.label(&self.description);
 
-
+                
                 ui.allocate_space(vec2(0.0, 20.0));
-                CalendarGrid::new(24, 8, self.color).show(ui,self.created_at.unwrap(), Schedule::from_str(self.frequency.as_str()).unwrap(), actions);
+                CalendarGrid::new(24, 8, self.color).show(ui, self, Schedule::from_str(self.frequency.as_str()).unwrap(), actions);
 
                 //TODO refactor using ui.allocate_space instead of frame margin and ui.horizontal instead of ui.with_layout. it will make this block more concise 
                 Frame::default()
                 .outer_margin(Margin{left:0.0, right:0.0, bottom:0.0, top: 20.0})
                 .show(ui,|ui| { ui.with_layout(Layout::left_to_right(Align::Min), |ui|{
-                    ui.add(egui::Button::new(RichText::new("Add Entry +").color(self.color).underline()));
+                    ui.add(egui::Button::new(RichText::new("mark done!").color(self.color).underline()));
                     ui.add_space(15.0);
-                    ui.add(egui::Button::new(RichText::new("Tick the day").underline()));
+                    ui.add(egui::Button::new(RichText::new("update habit").underline()));
                 })});   
 
                 
@@ -312,43 +312,70 @@ impl CalendarGrid{
             cols,rows,done_color
         }
     }
-    fn show(&self, ui: &mut egui::Ui, created_at: DateTime<Utc>, schedule: Schedule, actions : &mut Vec<Action>){
-        let mut fire_times = schedule.after(&created_at).take_while(|&x| Utc::now().signed_duration_since(x).num_seconds().is_positive());
+    fn show(&self, ui: &mut egui::Ui, habit: &Habit, schedule: Schedule, actions : &mut Vec<Action>){
+        
+        let mut fire_times: Vec<DateTime<Utc>> = schedule.after(&habit.created_at.unwrap()).take_while(|&x| Utc::now().signed_duration_since(x).num_seconds().is_positive()).collect();
+        fire_times.reverse();
+        
+        let mut actions : Vec<&Action> =  actions.iter().filter(|x| x.habit_id == habit.id).collect();
+        actions.sort_by(|a,b| b.created_at.cmp(&a.created_at));
+        
         let available_slots = self.rows * self.cols;
-
-
-        // if fire_times.count() > (self.rows * self.cols ) as usize {
-        //     //the habit has been running for a long time. it exceeds the available slots, TODO add a scrolling mechanism between slot-windows
-        // };
-
-
-
-        // let mut vec : Vec<bool> = vec![false; available_slots as usize];
         
-        // for (i, cell) in vec.iter_mut().enumerate(){
-        //     //TODO handle when i+1 is out of bounds
-        //     let start_range = fire_times.nth(i).unwrap();
-        //     let end_range = fire_times.nth(i+1).unwrap();
-
-        //     //determine if some date_time is contained inside of a range
-        //     //date_time represents an action 
-        //     let action = &actions[0];
-        //     let is_inside_range = action.created_at.signed_duration_since(start_range).num_seconds().is_negative() && action.created_at.signed_duration_since(end_range).num_seconds().is_positive();
+        let mut vec : Vec<bool> = vec![false; available_slots  as usize];
         
+        if fire_times.len() > available_slots as usize {
+            todo!("the habit has been running for a long time. it exceeds the available slots, TODO add a scrolling mechanism between slot-windows");
 
-        //     if is_inside_range {
-        //         actions.remove(0);
-        //         *cell = true
-        //     } 
-        // }
+        };
 
+
+
+
+        for (i, cell) in vec.iter_mut().enumerate(){
+
+            let start_range = match fire_times.get(i){
+                Some(e) => *e,
+                None => {
+                    println!("breaking out of loop with count {}", i);
+                    break
+                },
+            };
+            let end_range = match fire_times.get(i+1){
+                Some(e) => *e,
+                None => {
+                    println!("breaking out of loop with count {}", i);
+                    break
+                },
+            };
+            
+            //determine if some date_time is contained inside of a range
+            //date_time represents an action 
+            let action = match actions.get(0){
+                Some(e) => *e,
+                None => {
+                    println!("action not found");
+                    break
+                }
+            };
+            
+            let is_inside_range = action.created_at.signed_duration_since(start_range).num_seconds().is_negative() && action.created_at.signed_duration_since(end_range).num_seconds().is_positive();
+
+            if is_inside_range {
+                println!("\n\nstart: {}\nend: {}\naction: {}",start_range, end_range, action.created_at);
+                actions.remove(0);
+                *cell = true
+            } 
+        }
+        println!("{:?}", vec);
+        
         for i in 0..self.rows{
             ui.spacing_mut().item_spacing = vec2(6.0, 6.0);
             ui.with_layout(Layout::right_to_left(Align::Min), |ui|{
                 for j in 0..self.cols{
                     
                     let rect = ui.allocate_exact_size(vec2(18.0, 18.0), Sense::hover()).0;
-                    ui.painter().rect(rect, Rounding::default(), if (i+j) % 3 == 0 || (j+i) % 12 == 0 {self.done_color} else {Color32::from_rgb(104, 107, 120)}, Stroke::none());
+                    ui.painter().rect(rect, Rounding::default(), if vec[(i *self.cols ) as usize + j as usize] == true {self.done_color} else {Color32::from_rgb(104, 107, 120)}, Stroke::none());
 
                 }
             });
