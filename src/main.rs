@@ -249,7 +249,7 @@ impl Habit{
                 .show(ui,|ui| { ui.with_layout(Layout::left_to_right(Align::Min), |ui|{
                     ui.add(egui::Button::new(RichText::new("mark done!").color(self.color).underline()));
                     ui.add_space(15.0);
-                    ui.add(egui::Button::new(RichText::new("update habit").underline()));
+                    ui.add(egui::Button::new(RichText::new("update").underline()));
                 })});   
 
                 
@@ -321,61 +321,49 @@ impl CalendarGrid{
         actions.sort_by(|a,b| b.created_at.cmp(&a.created_at));
         
         let available_slots = self.rows * self.cols;
+        let mut flat_grid : Vec<bool> = vec![false; available_slots  as usize];
         
-        let mut vec : Vec<bool> = vec![false; available_slots  as usize];
-        
+
         if fire_times.len() > available_slots as usize {
             todo!("the habit has been running for a long time. it exceeds the available slots, TODO add a scrolling mechanism between slot-windows");
-
         };
 
 
 
 
-        for (i, cell) in vec.iter_mut().enumerate(){
+        for (i, cell) in flat_grid.iter_mut().enumerate(){
 
             let start_range = match fire_times.get(i){
                 Some(e) => *e,
-                None => {
-                    println!("breaking out of loop with count {}", i);
-                    break
-                },
+                None => break
             };
             let end_range = match fire_times.get(i+1){
                 Some(e) => *e,
-                None => {
-                    println!("breaking out of loop with count {}", i);
-                    break
-                },
+                None => break
             };
-            
-            //determine if some date_time is contained inside of a range
-            //date_time represents an action 
             let action = match actions.get(0){
                 Some(e) => *e,
-                None => {
-                    println!("action not found");
-                    break
-                }
+                None => break
             };
             
+            //check if action date time is contained in the range of two consecutive fire times
             let is_inside_range = action.created_at.signed_duration_since(start_range).num_seconds().is_negative() && action.created_at.signed_duration_since(end_range).num_seconds().is_positive();
 
             if is_inside_range {
-                println!("\n\nstart: {}\nend: {}\naction: {}",start_range, end_range, action.created_at);
+                *cell = true;
                 actions.remove(0);
-                *cell = true
             } 
         }
-        println!("{:?}", vec);
-        
+
+
+        //render the flat_grid into a grid. uses some index arithmetic  
         for i in 0..self.rows{
             ui.spacing_mut().item_spacing = vec2(6.0, 6.0);
             ui.with_layout(Layout::right_to_left(Align::Min), |ui|{
                 for j in 0..self.cols{
                     
                     let rect = ui.allocate_exact_size(vec2(18.0, 18.0), Sense::hover()).0;
-                    ui.painter().rect(rect, Rounding::default(), if vec[(i *self.cols ) as usize + j as usize] == true {self.done_color} else {Color32::from_rgb(104, 107, 120)}, Stroke::none());
+                    ui.painter().rect(rect, Rounding::default(), if flat_grid[(i *self.cols ) as usize + j as usize] == true {self.done_color} else {Color32::from_rgb(104, 107, 120)}, Stroke::none());
 
                 }
             });
