@@ -159,9 +159,9 @@ impl eframe::App for MyApp {
             ui.with_layout(egui::Layout::right_to_left(Align::LEFT), |ui|{
                 ui.heading("your habit tracker");
             });
-
+            
             ScrollArea::new([false, true]).show(ui, |ui|{
-                for habit in self.habits.iter()  {habit.show(ui, &mut self.actions)};
+                for habit in  self.habits.clone().iter()  {habit.show(ui, &mut self.actions, &mut self.habits)};
             
             });
             
@@ -194,7 +194,7 @@ struct Habit{
     created_at: Option<DateTime<Utc>>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Copy)]
 struct Action{
     habit_id: Uuid,
     created_at: DateTime<Utc>
@@ -212,7 +212,7 @@ impl Habit{
             created_at: None,
         }
     }
-    fn show(&self, ui : &mut egui::Ui, actions: &mut Vec<Action>){
+    fn show(&self, ui : &mut egui::Ui, actions: &mut Vec<Action>, habits: &mut Vec<Habit>){
     
 
         Frame::default()
@@ -254,17 +254,29 @@ impl Habit{
 
                     if mark_done.clicked() && !is_action_done{ 
                         actions.push(Action { habit_id: self.id, created_at: Utc::now() });
-                        fs::write("actions.json", serde_json::to_string(&actions).unwrap()).expect("should be able to write content to habits.json");
+                        fs::write("actions.json", serde_json::to_string(&actions).unwrap()).expect("should be able to write content to actions.json");
                     }
                     if mark_done.hovered() && is_action_done {
                         egui::show_tooltip_text(ui.ctx(), egui::Id::new("my_tooltip"), " you  did this. Good Job!");
 
                     }
-                    ui.add_space(15.0);
-                    if ui.add(egui::Button::new(RichText::new("update").underline())).hovered(){
 
-                        egui::show_tooltip_text(ui.ctx(), egui::Id::new("update_not_implemented"), "not implemented yet");
+
+                    ui.add_space(15.0);
+                    if ui.add(egui::Button::new(RichText::new("del").underline())).clicked(){
+
+                        //TODO: add an are you sure confirmation  modal.
+                        habits.remove(habits.iter().position(|x| x.id.eq(&self.id)).unwrap());
+                        
+                        //cascade delete actions                        
+                        actions.retain(|&x| x.habit_id != self.id);
+                        
+                        fs::write("actions.json", serde_json::to_string(&actions).unwrap()).expect("should be able to write content to habits.json");
+                        
+                        fs::write("habits.json", serde_json::to_string(habits).unwrap()).expect("should be able to write content to habits.json");
+
                     }
+
 
                 })});   
 
