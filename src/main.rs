@@ -358,33 +358,33 @@ impl CalendarGrid{
         let mut  is_action_done = false;
 
         for (i, cell) in flat_grid.iter_mut().enumerate(){
-            println!("{:#?}", actions);
+            // println!("{:#?}", actions);
 
             let start_range = match fire_times.get(i){
                 Some(e) => *e,
                 None => {
-                    println!("no start range");
+                    // println!("no start range");
                     break;
                 },
             };
             let end_range = match fire_times.get(i+1){
                 Some(e) => *e,
                 None => {
-                    println!("no end range");
+                    // println!("no end range");
                     break;
                 },
             };
             let action = match actions.get(0){
                 Some(e) => *e,
                 None => {
-                    println!("no action");
+                    // println!("no action");
                     *cell = Cell::NotDone;
                     continue;
                 },
             };
 
 
-            println!("start: {:#?}\nend: {:#?}", start_range, end_range);
+            // println!("start: {:#?}\nend: {:#?}", start_range, end_range);
             
             //check if action date time is contained in the range of two consecutive fire times
             let is_inside_range = action.created_at.signed_duration_since(start_range).num_seconds().is_negative() && action.created_at.signed_duration_since(end_range).num_seconds().is_positive();
@@ -392,7 +392,7 @@ impl CalendarGrid{
             if i == 0 {
                 is_action_done = is_inside_range;
             }
-            println!("{}", is_inside_range);
+            // println!("{}", is_inside_range);
             if is_inside_range {
                 *cell = Cell::Done;
                 actions.remove(0);
