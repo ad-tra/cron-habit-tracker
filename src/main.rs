@@ -35,14 +35,12 @@ struct MyApp {
 impl  MyApp {
     fn new(cc : &eframe::CreationContext<'_>) -> Self {
         configure_custom_theme(&cc.egui_ctx);
-        let res : serde_json::Value = serde_json::from_reader(fs::File::open("habits.json").unwrap()).unwrap();
+
         Self {
             is_new_habit_window_visible: false,
             new_habit: Habit::default(),
-            habits: Vec::<Habit>::deserialize(&res["habits"]).unwrap(),
-            actions:  Vec::<Action>::deserialize(&res["actions"]).unwrap()
-            
-            
+            habits: serde_json::from_reader(fs::File::open("habits.json").unwrap()).unwrap(),
+            actions:  serde_json::from_reader(fs::File::open("actions.json").unwrap()).unwrap()
         }
     }
 }
@@ -122,6 +120,8 @@ impl eframe::App for MyApp {
                                         self.new_habit.created_at = Some(Utc::now());
                                         self.habits.push(self.new_habit.clone());
                                         
+
+                                        //TODO: instead of deserializing manually here, impl a Deserializer for app state.  
                                         fs::write("habits.json", serde_json::to_string(&self.habits).unwrap()).expect("should be able to write content to habits.json");
 
                                         self.new_habit = Habit::default();
@@ -213,7 +213,8 @@ impl Habit{
         }
     }
     fn show(&self, ui : &mut egui::Ui, actions: &mut Vec<Action>){
-        
+    
+
         Frame::default()
             .inner_margin(Margin::symmetric(40.00, 25.00))
             .fill(Color32::from_rgb(68, 71, 90))
@@ -241,15 +242,30 @@ impl Habit{
 
                 
                 ui.allocate_space(vec2(0.0, 20.0));
-                CalendarGrid::new(24, 8, self.color).show(ui, self, Schedule::from_str(self.frequency.as_str()).unwrap(), actions);
+                let is_action_done = CalendarGrid::new(24, 8, self.color).show(ui, self, Schedule::from_str(self.frequency.as_str()).unwrap(), actions);
 
                 //TODO refactor using ui.allocate_space instead of frame margin and ui.horizontal instead of ui.with_layout. it will make this block more concise 
                 Frame::default()
                 .outer_margin(Margin{left:0.0, right:0.0, bottom:0.0, top: 20.0})
                 .show(ui,|ui| { ui.with_layout(Layout::left_to_right(Align::Min), |ui|{
-                    ui.add(egui::Button::new(RichText::new("mark done!").color(self.color).underline()));
+
+                    
+                    let mark_done = ui.add(egui::Button::new(RichText::new("mark done!").color(self.color.linear_multiply(if is_action_done {0.2} else {1.0})).underline()));
+
+                    if mark_done.clicked() && !is_action_done{ 
+                        actions.push(Action { habit_id: self.id, created_at: Utc::now() });
+                        fs::write("actions.json", serde_json::to_string(&actions).unwrap()).expect("should be able to write content to habits.json");
+                    }
+                    if mark_done.hovered() && is_action_done {
+                        egui::show_tooltip_text(ui.ctx(), egui::Id::new("my_tooltip"), " you  did this. Good Job!");
+
+                    }
                     ui.add_space(15.0);
-                    ui.add(egui::Button::new(RichText::new("update").underline()));
+                    if ui.add(egui::Button::new(RichText::new("update").underline())).hovered(){
+
+                        egui::show_tooltip_text(ui.ctx(), egui::Id::new("update_not_implemented"), "not implemented yet");
+                    }
+
                 })});   
 
                 
@@ -306,53 +322,84 @@ struct CalendarGrid{
     done_color: Color32,
 }
 
+#[derive(Clone,PartialEq)]
+enum Cell {
+    Done,
+    NotDone,
+    OutOfBounds,
+}
 impl CalendarGrid{
     fn new(cols: u32, rows: u32, done_color: Color32) -> Self {
         Self {
             cols,rows,done_color
         }
     }
-    fn show(&self, ui: &mut egui::Ui, habit: &Habit, schedule: Schedule, actions : &mut Vec<Action>){
+    fn show(&self, ui: &mut egui::Ui, habit: &Habit, schedule: Schedule, actions : &mut Vec<Action>) -> bool{
         
-        let mut fire_times: Vec<DateTime<Utc>> = schedule.after(&habit.created_at.unwrap()).take_while(|&x| Utc::now().signed_duration_since(x).num_seconds().is_positive()).collect();
+        //fire_times that don't exceed the present + one in the future.
+        let fire_times  = schedule.after(&habit.created_at.unwrap()).take_while(|&x| Utc::now().signed_duration_since(x).num_seconds().is_positive()).count()+1;
+        let mut fire_times: Vec<DateTime<Utc>> = schedule.after(&habit.created_at.unwrap()).take(fire_times).collect(); 
         fire_times.reverse();
+        fire_times.push(habit.created_at.unwrap());
         
+
+
         let mut actions : Vec<&Action> =  actions.iter().filter(|x| x.habit_id == habit.id).collect();
         actions.sort_by(|a,b| b.created_at.cmp(&a.created_at));
-        
+
         let available_slots = self.rows * self.cols;
-        let mut flat_grid : Vec<bool> = vec![false; available_slots  as usize];
+        let mut flat_grid : Vec<Cell> = vec![Cell::OutOfBounds; available_slots  as usize];
         
 
         if fire_times.len() > available_slots as usize {
             todo!("the habit has been running for a long time. it exceeds the available slots, TODO add a scrolling mechanism between slot-windows");
         };
 
-
-
+        let mut  is_action_done = false;
 
         for (i, cell) in flat_grid.iter_mut().enumerate(){
+            println!("{:#?}", actions);
 
             let start_range = match fire_times.get(i){
                 Some(e) => *e,
-                None => break
+                None => {
+                    println!("no start range");
+                    break;
+                },
             };
             let end_range = match fire_times.get(i+1){
                 Some(e) => *e,
-                None => break
+                None => {
+                    println!("no end range");
+                    break;
+                },
             };
             let action = match actions.get(0){
                 Some(e) => *e,
-                None => break
+                None => {
+                    println!("no action");
+                    *cell = Cell::NotDone;
+                    continue;
+                },
             };
+
+
+            println!("start: {:#?}\nend: {:#?}", start_range, end_range);
             
             //check if action date time is contained in the range of two consecutive fire times
             let is_inside_range = action.created_at.signed_duration_since(start_range).num_seconds().is_negative() && action.created_at.signed_duration_since(end_range).num_seconds().is_positive();
 
+            if i == 0 {
+                is_action_done = is_inside_range;
+            }
+            println!("{}", is_inside_range);
             if is_inside_range {
-                *cell = true;
+                *cell = Cell::Done;
                 actions.remove(0);
-            } 
+            }
+            else{
+                *cell = Cell::NotDone;
+            }
         }
 
 
@@ -363,11 +410,19 @@ impl CalendarGrid{
                 for j in 0..self.cols{
                     
                     let rect = ui.allocate_exact_size(vec2(18.0, 18.0), Sense::hover()).0;
-                    ui.painter().rect(rect, Rounding::default(), if flat_grid[(i *self.cols ) as usize + j as usize] == true {self.done_color} else {Color32::from_rgb(104, 107, 120)}, Stroke::none());
+                    
+                    let cell_color =  match flat_grid[(i *self.cols ) as usize + j as usize]{
+                        Cell::Done => self.done_color,
+                        Cell::NotDone => Color32::from_rgb(104, 107, 120),
+                        Cell::OutOfBounds => Color32::from_rgb(104, 107, 120).linear_multiply(0.2),
+                    };
+
+                    ui.painter().rect(rect, Rounding::default(), cell_color, Stroke::none());
 
                 }
             });
         }
+        return is_action_done;
     }
 }
 

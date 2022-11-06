@@ -1,27 +1,20 @@
-{
-	"habits": [
-		{
-			"id": "65dfdff3-13ee-4bd0-bc04-ee5f42f880f5",
-			"name": "Drawing",
-			"description": "be one with my pencil. learn about anatomy, perspective, and color theory",
-			"color": [139, 233, 253, 255],
-			"streak": 1,
-			"frequency": "0 0 0 * * * ",
-			"created_at": "2022-10-01T05:37:40.579169100Z"
-		}
-	],
-	"actions":[
-		{
-			"habit_id" : "65dfdff3-13ee-4bd0-bc04-ee5f42f880f5",
-			"created_at": "2022-10-20T18:58:06.869659800Z"
-		},
-		{
-			"habit_id" : "65dfdff3-13ee-4bd0-bc04-ee5f42f880f5",
-			"created_at": "2022-11-03T18:58:06.869659800Z"
-		},
-		{
-			"habit_id" : "65dfdff3-13ee-4bd0-bc04-ee5f42f880f5",
-			"created_at": "2022-11-02T18:58:06.869659800Z"
-		}
-	]
-}
+[
+	{
+		"id": "53a9fb6a-78cc-4cc7-b66c-f1172e8d42e6",
+		"name": "Drawing",
+		"description": "be one with my pencil. learn about atanomy, perspective, and color theory",
+		"color": [139, 233, 253, 255],
+		"streak": 0,
+		"frequency": "0 0 * * * * ",
+		"created_at": "2022-11-05T01:14:15.867833100Z"
+	},
+	{
+		"id": "4f8ca45a-c1e6-4055-8f18-a2eff1f5cee9",
+		"name": "Read",
+		"description": "crack the books, learn something new.",
+		"color": [253, 246, 139, 255],
+		"streak": 0,
+		"frequency": "0 0 * * * *",
+		"created_at": "2022-11-06T03:50:46.716504500Z"
+	}
+]
