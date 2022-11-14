@@ -45,7 +45,7 @@ impl CalendarGrid{
         
 
         if fire_times.len() > available_slots as usize {
-            todo!("the habit has been running for a long time. it exceeds the available slots, TODO add a scrolling mechanism between slot-windows");
+            todo!("the habit has been running for a long time. it exceeds the available slots, add a scrolling mechanism between slot-windows");
         };
 
         let mut  is_action_done = false;
@@ -77,7 +77,6 @@ impl CalendarGrid{
             };
 
 
-            // println!("start: {:#?}\nend: {:#?}", start_range, end_range);
             
             //check if action date time is contained in the range of two consecutive fire times
             let is_inside_range = action.created_at.signed_duration_since(start_range).num_seconds().is_negative() && action.created_at.signed_duration_since(end_range).num_seconds().is_positive();

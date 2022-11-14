@@ -1,18 +1,29 @@
 use super::CalendarGrid;
 use cron::Schedule;
+use lockbook_core::service::api_service::Network;
 use uuid::Uuid;
-use std::fs;
 use std::str::FromStr;
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use eframe::egui::{self, Layout, RichText, Frame};
+use lockbook_core::CoreLib;
+
+use eframe::egui::{self, Layout, RichText, Frame, ScrollArea};
 use eframe::egui::style::Margin;
 use eframe::egui::{TextStyle};
 use eframe::emath::Align;
 use eframe::epaint::{Color32, vec2};
 
 
+pub struct  HabitList;
+
+impl HabitList {
+    pub fn show(ui: &mut egui::Ui, app_state: &mut crate::MyApp){
+        ScrollArea::new([false, true]).show(ui, |ui|{
+            for habit in  app_state.habits.clone().iter()  {habit.show(ui, &mut app_state.actions, &mut app_state.habits, &app_state.core)};
+        });
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug,  Clone)]
 pub struct Habit{
@@ -43,7 +54,7 @@ impl Habit{
             created_at: None,
         }
     }
-    pub fn show(&self, ui : &mut egui::Ui, actions: &mut Vec<Action>, habits: &mut Vec<Habit>){
+    pub fn show(&self, ui : &mut egui::Ui, actions: &mut Vec<Action>, habits: &mut Vec<Habit>, core : &CoreLib<Network>){
     
 
         Frame::default()
@@ -85,7 +96,10 @@ impl Habit{
 
                     if mark_done.clicked() && !is_action_done{ 
                         actions.push(Action { habit_id: self.id, created_at: Utc::now() });
-                        fs::write("actions.json", serde_json::to_string(&actions).unwrap()).expect("should be able to write content to actions.json");
+
+                        
+                        let actions_document = core.get_by_path("/habit-tracker/actions.json").unwrap();
+                        core.write_document(actions_document.id, serde_json::to_string(&actions).unwrap().as_bytes()).unwrap();
                     }
                     if mark_done.hovered() && is_action_done {
                         egui::show_tooltip_text(ui.ctx(), egui::Id::new("my_tooltip"), " you  did this. Good Job!");
@@ -96,16 +110,17 @@ impl Habit{
                     ui.add_space(15.0);
                     if ui.add(egui::Button::new(RichText::new("del").underline())).clicked(){
 
-                        //TODO: add an are you sure confirmation  modal.
+                        //TODO: add an are you sure confirmation modal.
                         habits.remove(habits.iter().position(|x| x.id.eq(&self.id)).unwrap());
                         
                         //cascade delete actions                        
                         actions.retain(|&x| x.habit_id != self.id);
+                        println!("{:#?}", actions);
+                        let actions_document = core.get_by_path("/habit-tracker/actions.json").unwrap();
+                        core.write_document(actions_document.id, serde_json::to_string(&actions).unwrap().as_bytes()).unwrap();
                         
-                        fs::write("actions.json", serde_json::to_string(&actions).unwrap()).expect("should be able to write content to habits.json");
-                        
-                        fs::write("habits.json", serde_json::to_string(habits).unwrap()).expect("should be able to write content to habits.json");
-
+                        let habits_document = core.get_by_path("/habit-tracker/habits.json").unwrap();
+                        core.write_document(habits_document.id, serde_json::to_string(&habits).unwrap().as_bytes()).unwrap();
                     }
 
 
