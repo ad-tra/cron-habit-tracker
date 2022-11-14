@@ -1,3 +1,7 @@
 /target
 /dist
 .vscode 
+lockbook_core__repo__schema__CoreV1
+lockbook_core__repo__schema_v2__CoreV2
+lockbook.log
+/documents
