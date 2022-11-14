@@ -75,6 +75,7 @@ impl Habit{
                     ui.with_layout(Layout::right_to_left(Align::TOP), |ui|{
                         
                         ui.label(RichText::new("Day Streak").text_style(TextStyle::Name("Heading2Filled".into())));
+                        //TODO streaks not yet implemented.
                         ui.label(RichText::new(self.streak.to_string()).text_style(TextStyle::Name("Heading2Regular".into())));
                         ui.label(RichText::new("•••").color(self.color).text_style(TextStyle::Name("Heading2Filled".into())));
 

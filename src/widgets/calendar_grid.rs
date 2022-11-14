@@ -13,7 +13,7 @@ pub struct CalendarGrid{
     done_color: Color32,
 }
 
-#[derive(Clone,PartialEq)]
+#[derive(Clone,PartialEq, Debug)]
 enum Cell {
     Done,
     NotDone,
@@ -27,6 +27,7 @@ impl CalendarGrid{
             cols,rows,done_color
         }
     }
+    //TODO this algo should be tested more, from my own observation the grid drawing doesn't work well in high frequency cron expressions
     pub fn show(&self, ui: &mut egui::Ui, habit: &Habit, schedule: Schedule, actions : &mut Vec<Action>) -> bool{
         
         //fire_times that don't exceed the present + one in the future.
@@ -95,7 +96,7 @@ impl CalendarGrid{
         }
 
 
-        //render the flat_grid into a grid. uses some index arithmetic  
+        //render the flat_grid into a grid. uses some index arithmetic
         for i in 0..self.rows{
             ui.spacing_mut().item_spacing = vec2(6.0, 6.0);
             ui.with_layout(Layout::right_to_left(Align::Min), |ui|{

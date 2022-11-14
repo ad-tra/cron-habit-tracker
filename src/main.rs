@@ -32,12 +32,14 @@ use eframe::epaint::{Color32, vec2};
 
 
 fn main() {
+    let core = Core::init(&lockbook_core::Config{writeable_path:String::from("./"), logs: true, colored_logs: true}).unwrap();
+    core_startup(&core);
     
     let options = eframe::NativeOptions { fullscreen: true, ..Default::default() };
     eframe::run_native(
         "Take Home",
         options,
-        Box::new(|cc| Box::new(MyApp::new(cc, core_startup()))),
+        Box::new(|cc| Box::new(MyApp::new(cc, core))),
     );
 }
 
@@ -142,8 +144,17 @@ impl eframe::App for MyApp {
                             },
                             LbError::Unexpected(msg) => println!("{}",msg),
                         });
-                        app_state.visible_panel = Panel::Root;
                         core_sync(&app_state.core);
+
+                        let file_paths   = vec!["/habit-tracker/habits.json", "/habit-tracker/actions.json"];
+                        for file_path in file_paths{
+                            match &app_state.core.create_at_path(file_path){ //can't start the file with empty content because serde will panic when serializing  
+                                Ok(file) => {let _ =&app_state.core.write_document(file.id,"[]".as_bytes()).unwrap();},
+                                _ => ()
+                            }
+                        }
+                        core_startup(&app_state.core);
+                        app_state.visible_panel = Panel::Root;
 
                 },|ui, app_state|{ //children
                     ControlledInput::from("token",&mut app_state.auth_token).spacing_top(30.0).show(ui);
@@ -189,10 +200,9 @@ impl eframe::App for MyApp {
 
 //TODO move these core helps somewhere else to not clutter main
 //init core and create necessary files if they don't exist (habits.json and actions.json)
-fn core_startup() -> CoreLib<Network>{
+fn core_startup(core:  &CoreLib<Network>){
 
-    let core = Core::init(&lockbook_core::Config{writeable_path:String::from("./"), logs: true, colored_logs: true}).unwrap();    
-    if core.get_account().is_err() {return core;}
+    if core.get_account().is_err() {return}
 
     
     core_sync(&core);
@@ -205,7 +215,7 @@ fn core_startup() -> CoreLib<Network>{
         }
     }
     core_sync(&core);
-    core
+    
 }
 
 fn core_sync(core: &CoreLib<Network>) {
