@@ -30,5 +30,5 @@ This Rust-based habit tracker is built on [egui](https://github.com/emilk/egui).
 ## Contributing
 
 I originally developed this app as a take-home project for Lockbook. The code quality might not be top-notch as I was on a tight deadline, and I didn't have any prior experience with Rust or egui. 
-Feel free to throw in your bug reports, feature ideas, or even some code tweaks through pull requests. We're all in this together!
+Feel free to throw in your bug reports, feature ideas, or even some code tweaks through pull requests.
 
